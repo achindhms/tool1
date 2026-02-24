@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Ads MCP Setup for Claude</title>
+    <style>
+        :root {
+            --color-bg-base: #0f172a;
+            --color-bg-elevated: #020617;
+            --color-bg-surface: #1e293b;
+            --color-bg-muted: #334155;
+            --color-text-primary: #f1f5f9;
+            --color-text-secondary: #cbd5e1;
+            --color-text-muted: #94a3b8;
+            --color-text-accent: #38bdf8;
+            --color-primary: #38bdf8;
+            --color-primary-hover: #0ea5e9;
+            --color-success: #22c55e;
+            --color-warning: #f59e0b;
+            --color-error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--color-bg-base);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--color-bg-surface);
+        }
+
+        h1 {
+            color: var(--color-primary);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            font-size: 1rem;
+        }
+
+        .setup-wizard {
+            background: var(--color-bg-surface);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--color-bg-muted);
+            z-index: 0;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--color-bg-muted);
+            color: var(--color-text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step.active .step-number {
+            background: var(--color-primary);
+            color: var(--color-bg-base);
+        }
+
+        .step.completed .step-number {
+            background: var(--color-success);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            text-align: center;
+        }
+
+        .step.active .step-label {
+            color: var(--color-text-primary);
+            font-weight: 500;
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        .info-box {
+            background: rgba(56, 189, 248, 0.1);
+            border-left: 4px solid var(--color-primary);
+            padding: 16px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .info-box.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: var(--color-warning);
+        }
+
+        .info-box.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-left-color: var(--color-success);
+        }
+
+        .info-box h3 {
+            color: var(--color-primary);
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .info-box.warning h3 {
+            color: var(--color-warning);
+        }
+
+        .info-box.success h3 {
+            color: var(--color-success);
+        }
+
+        .info-box p {
+            color: var(--color-text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin: 20px 0;
+        }
+
+        label {
+            display: block;
+            color: var(--color-text-primary);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--color-bg-base);
+            border: 2px solid var(--color-bg-muted);
+            border-radius: 8px;
+            color: var(--color-text-primary);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        textarea {
+            font-family: 'Courier New', monospace;
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .code-block {
+            background: var(--color-bg-base);
+            border: 2px solid var(--color-bg-muted);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            color: var(--color-text-secondary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: var(--color-bg-muted);
+            color: var(--color-text-primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--color-bg-surface);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+            justify-content: space-between;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-bg-base);
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background: var(--color-bg-muted);
+            color: var(--color-text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-bg-surface);
+        }
+
+        .btn-success {
+            background: var(--color-success);
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .checklist {
+            list-style: none;
+            margin: 16px 0;
+        }
+
+        .checklist li {
+            padding: 12px;
+            margin: 8px 0;
+            background: var(--color-bg-base);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .checklist input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .external-link {
+            color: var(--color-primary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .external-link:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .os-specific {
+            display: none;
+        }
+
+        .os-specific.visible {
+            display: block;
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .success-message h2 {
+            color: var(--color-success);
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .checkmark {
+            width: 80px;
+            height: 80px;
+            background: var(--color-success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Amazon Ads MCP Setup for Claude</h1>
+            <p class="subtitle">Connect your Amazon Ads account to Claude in 5 simple steps</p>
+        </header>
+
+        <div class="setup-wizard">
+            <div class="step-indicator">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Provider</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Account</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Token</div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Configure</div>
+                </div>
+                <div class="step" data-step="5">
+                    <div class="step-number">5</div>
+                    <div class="step-label">Test</div>
+                </div>
+            </div>
+
+            <!-- Step 1: Choose Provider -->
+            <div class="step-content active" id="step1">
+                <h2>Choose Your MCP Provider</h2>
+                <p style="color: var(--color-text-secondary); margin-bottom: 20px;">
+                    Select the provider that will connect Claude to your Amazon Ads account.
+                </p>
+
+                <div class="info-box">
+                    <h3>Recommended: Marketplace Ad Pros</h3>
+                    <p>The easiest option for beginners - no technical setup required, hosted service, includes read-only and read-write access.</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Provider:</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="provider" value="marketplaceadpros" checked>
+                            <span>Marketplace Ad Pros (Hosted - Recommended)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="provider" value="official">
+                            <span>Amazon Official MCP (Beta)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" disabled>Previous</button>
+                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Create Account -->
+            <div class="step-content" id="step2">
+                <h2>Create Your Provider Account</h2>
+                
+                <div class="info-box warning">
+                    <h3>Prerequisites</h3>
+                    <p>Make sure you have:</p>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>An active Amazon Ads account</li>
+                        <li>Claude Desktop installed on your computer</li>
+                        <li>Admin access to connect your Amazon Ads account</li>
+                    </ul>
+                </div>
+
+                <div id="mapInstructions">
+                    <h3 style="color: var(--color-primary); margin-top: 24px;">Follow These Steps:</h3>
+                    <ul class="checklist">
+                        <li>
+                            <input type="checkbox" id="check1">
+                            <label for="check1">Go to <a href="https://app.marketplaceadpros.com" target="_blank" class="external-link">Marketplace Ad Pros</a> and sign up for an account</label>
+                        </li>
+                        <li>
+                            <input type="checkbox" id="check2">
+                            <label for="check2">Connect your Amazon Ads account through the dashboard</label>
+                        </li>
+                        <li>
+                            <input type="checkbox" id="check3">
+                            <label for="check3">Subscribe to a plan that includes MCP access (AI Connect plan - ~$10/week)</label>
+                        </li>
+                        <li>
+                            <input type="checkbox" id="check4">
+                            <label for="check4">Verify your Amazon Ads accounts are showing in the dashboard</label>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="prevStep()">Previous</button>
+                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Get Token -->
+            <div class="step-content" id="step3">
+                <h2>Generate Your MCP Token</h2>
+                
+                <div class="info-box">
+                    <h3>What is an MCP Token?</h3>
+                    <p>This is like a password that allows Claude to securely access your Amazon Ads data. Treat it like you would any sensitive credential.</p>
+                </div>
+
+                <h3 style="color: var(--color-primary); margin-top: 24px;">Steps to Generate Token:</h3>
+                <ol style="margin-left: 20px; color: var(--color-text-secondary);">
+                    <li style="margin: 12px 0;">Log in to your Marketplace Ad Pros account</li>
+                    <li style="margin: 12px 0;">Navigate to <strong>Settings → API Keys</strong></li>
+                    <li style="margin: 12px 0;">Click <strong>"Generate New Key"</strong></li>
+                    <li style="margin: 12px 0;">Select key type: <strong>mcp-read</strong> (recommended for beginners)</li>
+                    <li style="margin: 12px 0;">Copy the generated token</li>
+                </ol>
+
+                <div class="info-box warning">
+                    <h3>Security Note</h3>
+                    <p><strong>mcp-read:</strong> Claude can only view data (recommended to start)<br>
+                    <strong>mcp-readwrite:</strong> Claude can modify campaigns (use only when you're comfortable)</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="bearerToken">Paste Your MCP Token Here:</label>
+                    <input type="text" id="bearerToken" placeholder="Enter your token from Marketplace Ad Pros">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="prevStep()">Previous</button>
+                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Configure Claude -->
+            <div class="step-content" id="step4">
+                <h2>Configure Claude Desktop</h2>
+                
+                <div class="form-group">
+                    <label>Select Your Operating System:</label>
+                    <select id="osSelect" onchange="updateOSInstructions()">
+                        <option value="mac">macOS</option>
+                        <option value="windows">Windows</option>
+                        <option value="linux">Linux</option>
+                    </select>
+                </div>
+
+                <div class="os-specific visible" id="macInstructions">
+                    <div class="info-box">
+                        <h3>macOS Configuration</h3>
+                        <p>Your configuration file is located at:</p>
+                    </div>
+                    <div class="code-block">
+                        <pre>~/Library/Application Support/Claude/claude_desktop_config.json</pre>
+                        <button class="copy-btn" onclick="copyToClipboard('~/Library/Application Support/Claude/claude_desktop_config.json')">Copy Path</button>
+                    </div>
+                </div>
+
+                <div class="os-specific" id="windowsInstructions">
+                    <div class="info-box">
+                        <h3>Windows Configuration</h3>
+                        <p>Your configuration file is located at:</p>
+                    </div>
+                    <div class="code-block">
+                        <pre>%APPDATA%\Claude\claude_desktop_config.json</pre>
+                        <button class="copy-btn" onclick="copyToClipboard('%APPDATA%\\Claude\\claude_desktop_config.json')">Copy Path</button>
+                    </div>
+                </div>
+
+                <div class="os-specific" id="linuxInstructions">
+                    <div class="info-box">
+                        <h3>Linux Configuration</h3>
+                        <p>Your configuration file is located at:</p>
+                    </div>
+                    <div class="code-block">
+                        <pre>~/.config/Claude/claude_desktop_config.json</pre>
+                        <button class="copy-btn" onclick="copyToClipboard('~/.config/Claude/claude_desktop_config.json')">Copy Path</button>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--color-primary); margin-top: 24px;">Configuration Steps:</h3>
+                <ol style="margin-left: 20px; color: var(--color-text-secondary);">
+                    <li style="margin: 12px 0;">Open Finder (Mac) or File Explorer (Windows)</li>
+                    <li style="margin: 12px 0;">Navigate to the path shown above</li>
+                    <li style="margin: 12px 0;">Open the file with a text editor (TextEdit, Notepad++, VS Code)</li>
+                    <li style="margin: 12px 0;">Copy the configuration below and paste it into the file</li>
+                    <li style="margin: 12px 0;">Save the file</li>
+                    <li style="margin: 12px 0;">Completely quit Claude Desktop and restart it</li>
+                </ol>
+
+                <div class="info-box warning">
+                    <h3>Important: Streamable HTTP Method</h3>
+                    <p>Use this configuration if you have Claude Desktop with Streamable HTTP support (newer versions):</p>
+                </div>
+
+                <div class="code-block">
+                    <pre id="configCode">{
+  "mcpServers": {
+    "marketplaceadpros": {
+      "type": "streamable-http",
+      "url": "https://app.marketplaceadpros.com/mcp"
+    }
+  }
+}</pre>
+                    <button class="copy-btn" onclick="copyConfig()">Copy Configuration</button>
+                </div>
+
+                <div class="info-box">
+                    <h3>Alternative: NPX Method</h3>
+                    <p>If the above doesn't work, use this configuration instead:</p>
+                </div>
+
+                <div class="code-block">
+                    <pre id="configCodeAlt"></pre>
+                    <button class="copy-btn" onclick="copyConfigAlt()">Copy Alternative Configuration</button>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="prevStep()">Previous</button>
+                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 5: Test Connection -->
+            <div class="step-content" id="step5">
+                <h2>Test Your Connection</h2>
+
+                <div class="info-box success">
+                    <h3>You're Almost Done!</h3>
+                    <p>Let's verify that Claude can access your Amazon Ads data.</p>
+                </div>
+
+                <h3 style="color: var(--color-primary); margin-top: 24px;">Testing Steps:</h3>
+                <ol style="margin-left: 20px; color: var(--color-text-secondary);">
+                    <li style="margin: 12px 0;">Make sure Claude Desktop is completely closed</li>
+                    <li style="margin: 12px 0;">On macOS: Press <strong>Cmd+Q</strong> | On Windows: Exit from system tray</li>
+                    <li style="margin: 12px 0;">Reopen Claude Desktop</li>
+                    <li style="margin: 12px 0;">Look for an MCP or tools indicator near the message box</li>
+                    <li style="margin: 12px 0;">Start a new conversation</li>
+                    <li style="margin: 12px 0;">Type the test prompt below:</li>
+                </ol>
+
+                <div class="code-block">
+                    <pre>Use the Marketplace Ad Pros Amazon Ads MCP server to list the Amazon Ads accounts I have access to.</pre>
+                    <button class="copy-btn" onclick="copyToClipboard('Use the Marketplace Ad Pros Amazon Ads MCP server to list the Amazon Ads accounts I have access to.')">Copy Test Prompt</button>
+                </div>
+
+                <div class="info-box">
+                    <h3>What to Expect:</h3>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>Claude will ask for permission to use the MCP server</li>
+                        <li>Click "Allow" or "Approve"</li>
+                        <li>Claude should return a list of your connected Amazon Ads accounts</li>
+                    </ul>
+                </div>
+
+                <div class="info-box warning">
+                    <h3>Troubleshooting</h3>
+                    <p><strong>If you see "no active plan" error:</strong> Make sure your Marketplace Ad Pros subscription is active<br>
+                    <strong>If Claude doesn't show MCP tools:</strong> Check that the config file was saved correctly and Claude was fully restarted<br>
+                    <strong>If you see connection errors:</strong> Verify your token is correct in the configuration file</p>
+                </div>
+
+                <h3 style="color: var(--color-primary); margin-top: 32px;">Example Prompts to Try:</h3>
+                <div class="code-block">
+                    <pre>"Show me the top 5 campaigns by spend in the last 7 days"
+
+"List all my active keywords with ACOS over 30%"
+
+"What are the recent performance trends for my Sponsored Products?"
+
+"Give me a summary of my ad spend and ROAS this month"</pre>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="prevStep()">Previous</button>
+                    <button class="btn-success" onclick="showSuccess()">Complete Setup</button>
+                </div>
+            </div>
+
+            <!-- Success Screen -->
+            <div class="step-content" id="success">
+                <div class="success-message">
+                    <div class="checkmark">✓</div>
+                    <h2>Setup Complete!</h2>
+                    <p style="color: var(--color-text-secondary); font-size: 1.1rem; margin: 20px 0;">
+                        Your Amazon Ads MCP is now connected to Claude
+                    </p>
+
+                    <div class="info-box success" style="text-align: left; margin-top: 30px;">
+                        <h3>What You Can Do Now:</h3>
+                        <ul style="margin-left: 20px; margin-top: 12px;">
+                            <li>Query campaign performance data</li>
+                            <li>Analyze ad spend and ROAS</li>
+                            <li>Get keyword and targeting insights</li>
+                            <li>Generate custom reports</li>
+                            <li>Monitor budget and pacing</li>
+                            <li>Access Marketplace Ad Pros recommendations</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-box" style="text-align: left; margin-top: 20px;">
+                        <h3>Next Steps:</h3>
+                        <ul style="margin-left: 20px; margin-top: 12px;">
+                            <li>Start with simple queries to get familiar</li>
+                            <li>Upgrade to mcp-readwrite token when ready for campaign management</li>
+                            <li>Join the Marketplace Ad Pros community for tips and tricks</li>
+                            <li>Set up automated workflows for regular reports</li>
+                        </ul>
+                    </div>
+
+                    <button class="btn-primary" onclick="resetWizard()" style="margin-top: 30px;">Start Over</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let userToken = '';
+
+        function updateStepIndicator() {
+            document.querySelectorAll('.step').forEach(step => {
+                const stepNum = parseInt(step.dataset.step);
+                step.classList.remove('active', 'completed');
+                
+                if (stepNum === currentStep) {
+                    step.classList.add('active');
+                } else if (stepNum < currentStep) {
+                    step.classList.add('completed');
+                }
+            });
+        }
+
+        function nextStep() {
+            if (currentStep === 3) {
+                userToken = document.getElementById('bearerToken').value.trim();
+                if (!userToken) {
+                    alert('Please enter your MCP token before continuing.');
+                    return;
+                }
+                updateAltConfig();
+            }
+
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            currentStep++;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            updateStepIndicator();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function prevStep() {
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            currentStep--;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            updateStepIndicator();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showSuccess() {
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            document.getElementById('success').classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetWizard() {
+            document.getElementById('success').classList.remove('active');
+            currentStep = 1;
+            document.getElementById('step1').classList.add('active');
+            updateStepIndicator();
+            document.getElementById('bearerToken').value = '';
+            userToken = '';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateOSInstructions() {
+            const os = document.getElementById('osSelect').value;
+            document.querySelectorAll('.os-specific').forEach(el => {
+                el.classList.remove('visible');
+            });
+            
+            if (os === 'mac') {
+                document.getElementById('macInstructions').classList.add('visible');
+            } else if (os === 'windows') {
+                document.getElementById('windowsInstructions').classList.add('visible');
+            } else if (os === 'linux') {
+                document.getElementById('linuxInstructions').classList.add('visible');
+            }
+        }
+
+        function updateAltConfig() {
+            const altConfig = {
+                "mcpServers": {
+                    "marketplaceadpros": {
+                        "command": "npx",
+                        "args": [
+                            "@marketplaceadpros/amazon-ads-mcp-server"
+                        ],
+                        "env": {
+                            "BEARER_TOKEN": userToken
+                        }
+                    }
+                }
+            };
+            
+            document.getElementById('configCodeAlt').textContent = JSON.stringify(altConfig, null, 2);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                btn.style.background = 'var(--color-success)';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = 'var(--color-bg-muted)';
+                }, 2000);
+            });
+        }
+
+        function copyConfig() {
+            const config = document.getElementById('configCode').textContent;
+            copyToClipboard(config);
+        }
+
+        function copyConfigAlt() {
+            const config = document.getElementById('configCodeAlt').textContent;
+            copyToClipboard(config);
+        }
+    </script>
+</body>
+</html>
+
